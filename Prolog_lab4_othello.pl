@@ -4,44 +4,46 @@
 % Black (b), White (w).
 
 % Board: [(White, d, 4),(Black, e, 4),(Black, d, 5),(White, e, 5)]
-% printBoard([(white,a,1),(black,b,1),(white,c,1),(black,d,1),(white,e,1),(black,f,1),(white,g,1),(black, h,1)]).
+% printCoord([(white,a,1),(black,b,1),(white,c,1),(black,d,1),(white,e,1),(black,f,1),(white,g,1),(black, h,1)]).
+% printCoord([(white,c,4),(white,d,4),(white, e,4),(white, c,5),(white,e,5),(white,c,6),(white,d,6),(white,e,6),(black,b,3),(black,c,3),(black,d,3),(black,e,3),(black, f,3),(black,b,4),(black,f,4),(black,b,5),(black,f,5),(black,b,6),(black,f,6),(black, b,7),(black,c,7),(black,d,7),(black,e,7),(black,f,7)],a,1).
+
 
 % Grafisk representation.
 %printBoard(_,0).
-printBoard(Board):- % [(C,X,Y)|Board]
-	printCoord(Board). %;
-	%write(' '),
+%printBoard(Board):- % [(C,X,Y)|Board]
+%	printCoord(Board).
 	%printBoard(Board).
 	
 % Finns A,1 i listan? Om nej, tom ruta. Annars rita ut den.
-printCoord(Board):-
+%printCoord([],_,_).
+printCoord(Board,X,Y):-
+	X \= h,
+	Y \= 8,
 	nextY(Ycord,_),
 	nextX(Xcord,_),
-	%member((Color, Xcord, Ycord),Board),
-	%col(Color,ColRev),
-	%write(ColRev).
-	
-	% if-then-else.
+	% if-then-else. Finns det någon färg i den rutan?
 	(member((Color, Xcord, Ycord),Board) ->  writeColor(Color, Xcord) ; writeSpace(Color,Xcord)),
-	writeNewLine(Xcord).
+	writeNewLine(Xcord),
+	printCoord(Board, Xcord, Ycord).
 	
-	
-%Måste veta när det är H så vi kan göra en radbrytning.
+% Ritar ut färgen.
 writeColor(Color,Xcord):-
-	col(Color,X),
+	color(Color,X),
 	write(' '),	write(X), write(' ').%,
 	%writeNewLine(Xcord).
 	
+% Om det inte finns någon färg där, rita ut en tom ruta.
 writeSpace(Color, Xcord):-
 	write(' _ ').%,
 	%writeNewLine(Xcord).
-	
+
+% Måste veta när det är H så vi kan göra en radbrytning.
 writeNewLine(Xcord):-
-	Xcord = h,
+	Xcord == h,
 	write('\n').
 	
-col(white, w).
-col(black, b).
+color(white, w).
+color(black, b).
 
 nextX(a,b).
 nextX(b,c).
@@ -67,39 +69,42 @@ invColor(black, white).
 % ------------------------------- LEGALMOVE -------------------------------
 
 % legalMove: list med alla som kan flippas.
-legalMove(Color, Board, X, Y, List):-
-	%findall(L1, xAxis(Color, Board, X, Y, L1), L), %,
-	
-	%setof(List,xAxisEast(Color, Board, X, Y, List), L1),
-	% ta sista i L1 och sätt den till L4.
-	%last(L1,L3),
-	
-	%setof(List,xAxisWest(Color, Board, X, Y, List), L2),
-	%last(L2,L4),
-	
-	%append(L3,L4,List),
-	
-	%setof(List,yAxisSouth(Color, Board, X, Y, List), L1),
-	%last(L1,L2).%,
-		
-	%setof(List,yAxisNorth(Color, Board, X, Y, List), L1),
-	%last(L1,L2),
-	
-	%setof(List, diagonalUpEast(Color, Board, X, Y, List),L1),
-	%last(L1,List),
-	
-	%setof(List, diagonalDownEast(Color, Board, X, Y, List),L1),
-	%last(L1,List),
-	
-	%setof(List, diagonalUpWest(Color, Board, X, Y, List),L1),
-	%last(L1,List),
-	
-	%setof(List, diagonalDownWest(Color, Board, X, Y, List),L1),
-	%last(L1,List),
-	
-	printBoard(Board).
-	
 % Skapa en lista med positioner med motståndarens färg, som ska sedan flippas.
+legalmove(Color, Board, X, Y, List):-
+	% findall(L1, xAxis(Color, Board, X, Y, L1), L), %,
+	% Ger en lista med alla lösningar, där den sista innehåller allting.
+	% Tar sista från setof (L1) och sätt den till M1.
+	setof(List,xAxisEast(Color, Board, X, Y, List), L1),
+	last(L1,M1),
+	setof(List,xAxisWest(Color, Board, X, Y, List), L2),
+	last(L2,M2),
+	append(M1,M2,List1),
+	
+	setof(List,yAxisSouth(Color, Board, X, Y, List), L3),
+	last(L3,M3),
+	setof(List,yAxisNorth(Color, Board, X, Y, List), L4),
+	last(L4,M4),
+	append(M3,M4,List2),
+	
+	setof(List, diagonalUpEast(Color, Board, X, Y, List),L5),
+	last(L5,M5),
+	setof(List, diagonalDownEast(Color, Board, X, Y, List),L6),
+	last(L6,M6),
+	append(M5,M6,List3),
+	
+	setof(List, diagonalUpWest(Color, Board, X, Y, List),L7),
+	last(L7,M7),
+	setof(List, diagonalDownWest(Color, Board, X, Y, List),L8),
+	last(L8,M8),
+	append(M7,M8,List4),
+	
+	append(List1,List2,N1),
+	append(List3,List4,N2),
+	append(N1,N2,List).
+	
+	printCoord(Board, a, 1).
+	
+
 % är rutan av motsatt färg? -> Gå till nästa ruta. Annars return.
 xAxisEast(_,_,_,_,[]).
 xAxisEast(Color, Board, X, Y, [(X1, Y)|L]):- 
@@ -181,16 +186,17 @@ diagonalDownWest(Color, Board, X, Y,[(X1,Y1)|L]):-
 	
 % tar listan från legalMove och flippar, maplist funktion (samma som haskell).
 % ifall legalMove failar, låt andra spelaren göra sitt move.
-makeMove(Color, Board, X, Y, NewBoard):-
-	legalMove(Color, Board, X, Y).
+makemove(Color, Board, X, Y, NewBoard):-
+	% Fixa legalmove signaturen så den inte ger ut en lista.
+	legalmove(Color, Board, X, Y, NewBoard).
 
 % -Moves, -NewBoard
 % kör makeMove N antal gånger.
-makeMoves(Color, Board, N, Moves, NewBoard):-
+makemoves(Color, Board, N, Moves, NewBoard):-
 	N>0,
-	makeMove(Color, Board, X, Y, NewBoard2),
+	makemove(Color, Board, X, Y, NewBoard2),
 	N1 is N-1,
-	makeMoves(Color, NewBoard2, N1, Moves, NewBoard).
+	makemoves(Color, NewBoard2, N1, Moves, NewBoard).
 
 % -Value
 valueOf(Color, Board, Value).
