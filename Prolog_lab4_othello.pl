@@ -60,36 +60,125 @@ writeTable([(Color, X, Y)|List]):-
 	write((Color,X,Y)),
 	write(')'),
 	writeTable(List).
-
+	
 % ------------------------------- LEGALMOVE -------------------------------
 legalmove(Color, Board, X, Y):-
-	% Kollar ifall legalmove2 returnerar en tom lista -> Draget är inte tillåtet.
-	isEmpty(Board,X,Y),!,
-	legalmove2(Color,Board,X,Y,List),
-	(List \= [] -> true ; false).
+	% Kollar ifall giveTiles returnerar en tom lista -> Draget är inte tillåtet.
+	%isEmpty(Board,X,Y),!,
+	%giveTiles(Color,Board,X,Y,List),
+	%(List \= [] -> true ; false).
+	member(X, [a,b,c,d,e,f,g,h]),
+	member(Y, [1,2,3,4,5,6,7,8]),
+	not(member((_,X,Y),Board)),
+	nextX(X,X1),
+	nextY(Y,Y1),
+	checkfirst(Board, X, Y).
+	%(
+		%xAxisEast(Color, Board, X, Y, List1),!,isLast2(Color,List1,A1);
+		%xAxisWest(Color, Board, X, Y, List2),!,isLast2(Color,List2,A2).
+		%yAxisSouth(Color, Board, X, Y, List3),!,isLast2(Color,List3,A3);
+		%yAxisNorth(Color, Board, X, Y, List4),!,isLast2(Color,List4,A4);
+		
+		%diagonalUpEast(Color, Board, X, Y, List5),!,isLast2(Color,List5,A5);
+		%diagonalDownEast(Color, Board, X, Y, List6),!,isLast2(Color,List6,A6);
+		%diagonalUpWest(Color, Board, X, Y, List7),!,isLast2(Color,List7,A7);
+		%diagonalDownWest(Color, Board, X, Y, List8),!,isLast2(Color,List8,A8).
+	%).
+
+
+xEastFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextX(X,X1), xEastSnd(Color, X1, Y, Board).
+xEastSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextX(X,X1), X1 \= i, xEastSnd(Color, X1, Y, Board)). 
+
+xWestFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextX(X1,X), xWestSnd(Color, X1, Y, Board).
+xWestSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextX(X1,X), xWestSnd(Color, X1, Y, Board)). 
+
+yDownFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextY(Y,Y1), yDownSnd(Color, X, Y1, Board).
+yDownSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextY(Y,Y1), Y1 \= 9, yDownSnd(Color, X, Y1, Board)). 
+
+yUpFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextY(Y1,Y), yUpSnd(Color, X, Y1, Board).
+yUpSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextY(Y1,Y), yUpSnd(Color, X, Y1, Board)). 
+	
+%checkfirst(white,Board, X, Y):- 
+%	member((white, X, Y), Board),
+%	nextX(X,X1),
+%	nextY(Y,Y1),
+%	checksecond(black, Board, X1, Y1).
+	
+%checkfirst(black,Board, X, Y):- 
+%	member((black, X, Y), Board),
+%	nextX(X,X1),
+%	nextY(Y,Y1),
+%	checksecond(black, Board, X1, Y1).
+
+%checksecond(white, Board, X, Y):-
+%	member((white, X, Y), Board),
+%	nextX(X,X1),
+%	nextY(Y,Y1),
+%	checksecond(black, Board, X1, Y1).
+	
+%checksecond(black, Board, X, Y):-
+%	member((white, X, Y), Board),
+%	nextX(X,X1),
+%	nextY(Y,Y1),
+%	checksecond(white, Board, X1, Y1).
+
+% ------
+
+%not(member((_,X,Y),Board),
+%nextX
+%nextY
+%checkfirst
+
+%checkfirst:-
+%member((white,X,Y)),
+%nextX
+%nextY
+%checksecond
+
+%checksecond
+%member(black,X;Y)
+
+%checksecond
+%member(white,X;Y)
+%nextX
+%nextY
+%checksecond
+	
+isLast2(Color, List):-
+	(last(List,(Color,_,_)) -> true ; false).
 
 % Skapar en lista med positioner med motståndarens färg, som ska sedan flippas.
-legalmove2(Color, Board, X, Y, List):-
-	% Ger en lista med alla lösningar, där den sista innehåller allting.	
-	setof(List,xAxisEast(Color, Board, X, Y, List), L1),
-	last(L1,M1),
-	setof(List,xAxisWest(Color, Board, X, Y, List), L2),
-	last(L2,M2),
+giveTiles(Color, Board, X, Y, List):-
+	% Ger en lista med alla lösningar. Vi vill åt den sista.
+	isEmpty(Board,X,Y),!,
+	(xAxisEast(Color, Board, X, Y, M1) -> M1=M1 ; M1=[]),
+	(xAxisWest(Color, Board, X, Y, M2) -> M2=M2 ; M2=[]),
+	(yAxisSouth(Color, Board, X, Y, M3) -> M3=M3 ; M3=[]),
+	(yAxisNorth(Color, Board, X, Y, M4) -> M4=M4 ; M4=[]),
+	(diagonalUpEast(Color, Board, X, Y, M5) -> M5=M5 ; M5=[]),
+	(diagonalDownEast(Color, Board, X, Y, M6) -> M6=M6 ; M6=[]),
+	(diagonalUpWest(Color, Board, X, Y, M7) -> M7=M7 ; M7=[]),
+	(diagonalDownWest(Color, Board, X, Y, M8) -> M8=M8 ; M8=[]),
 	
-	setof(List,yAxisSouth(Color, Board, X, Y, List), L3),
-	last(L3,M3),
-	setof(List,yAxisNorth(Color, Board, X, Y, List), L4),
-	last(L4,M4),
+	%setof(List,xAxisEast(Color, Board, X, Y, List), L1),
+	%last(L1,M1),
+	%setof(List,xAxisWest(Color, Board, X, Y, List), L2),
+	%last(L2,M2),
 	
-	setof(List, diagonalUpEast(Color, Board, X, Y, List),L5),
-	last(L5,M5),
-	setof(List, diagonalDownEast(Color, Board, X, Y, List),L6),
-	last(L6,M6),
+	%setof(List,yAxisSouth(Color, Board, X, Y, List), L3),
+	%last(L3,M3),
+	%setof(List,yAxisNorth(Color, Board, X, Y, List), L4),
+	%last(L4,M4),
 	
-	setof(List, diagonalUpWest(Color, Board, X, Y, List),L7),
-	last(L7,M7),
-	setof(List, diagonalDownWest(Color, Board, X, Y, List),L8),
-	last(L8,M8),
+	%setof(List, diagonalUpEast(Color, Board, X, Y, List),L5),
+	%last(L5,M5),
+	%setof(List, diagonalDownEast(Color, Board, X, Y, List),L6),
+	%last(L6,M6),
+
+	%setof(List, diagonalUpWest(Color, Board, X, Y, List),L7),
+	%last(L7,M7),
+	%setof(List, diagonalDownWest(Color, Board, X, Y, List),L8),
+	%last(L8,M8),
 	
 	isLast(Color, M1, N1),
 	isLast(Color, M2, N2),
@@ -108,13 +197,14 @@ legalmove2(Color, Board, X, Y, List):-
 	
 	append(List1,List2,A1),
 	append(List3,List4,B2),
-	append(A1,B2,List).
+	append(A1,B2,EndList),
+	(EndList \= [] -> List = EndList ; false).
 	%printCoord(List, a,1).
 
 % Är det sista elementet av samma färg?
 % Om ja -> ta bort det sista och skicka vidare listan.
-% Detta kommer användas längre ner då vi ska flippa färgen.
 % Om nej -> skicka en tom lista.
+% Detta kommer användas längre ner då vi ska flippa färgen.
 isLast(Color, List, List2):-
 	(last(List,(Color,X,Y)) -> delete(List,(Color,X,Y),List3),List2 = List3 ; List2 = []).
 	
@@ -122,21 +212,18 @@ isEmpty(Board, X,Y):-
 	not(member((_,X,Y),Board)),!.
 
 % Är rutan av motsatt färg? -> Gå till nästa ruta. Annars return.
-xAxisEast(_,_,_,_,[]).
+xAxisEast(_,_,h,_,[]).
 xAxisEast(Color, Board, X, Y, L):- 
 	X \= h,
 	nextX(X, X1),
-	% vill kolla motsatt färg, tills jag hittar min färg. alla mellan ska flippas.
 	invColor(Color, Col),
-	% Finns det en där, spara den till en lista.
 	% Kollar om platsen till höger inte är tom.
 	not(isEmpty(Board, X1, Y)),
 	% Om den till höger är rätt färg, fortsätt. Om inte lägger vi till den sista i listan.
-	% Detta så vi kan sedan kolla om den sista är samma färg.
 	(member((Col,X1,Y),Board) -> xAxisEast(Color, Board, X1, Y, L2), L = [(Col,X1,Y)|L2]; 
 								  xAxisEast(Color, Board, h, Y, L2), L = [(Color,X1,Y)|L2] ).
 		
-xAxisWest(_,_,_,_,[]).
+xAxisWest(_,_,a,_,[]).
 xAxisWest(Color, Board, X, Y, L):- 
 	X \= a,
 	nextX(X1, X),
@@ -147,7 +234,7 @@ xAxisWest(Color, Board, X, Y, L):-
 	(member((Col,X1,Y),Board) -> xAxisWest(Color, Board, X1, Y, L2), L = [(Col,X1,Y)|L2]; 
 								  xAxisWest(Color, Board, a, Y, L2), L = [(Color,X1,Y)|L2] ).
 
-yAxisSouth(_,_,_,_,[]).
+yAxisSouth(_,_,_,8,[]).
 yAxisSouth(Color, Board, X, Y, L):-
 	Y \= 8,
 	nextY(Y,Y1),
@@ -158,7 +245,7 @@ yAxisSouth(Color, Board, X, Y, L):-
 	(member((Col,X,Y1),Board) -> yAxisSouth(Color, Board, X, Y1, L2), L = [(Col,X,Y1)|L2]; 
 								  yAxisSouth(Color, Board, X, 8, L2), L = [(Color,X,Y1)|L2] ).
 	
-yAxisNorth(_,_,_,_,[]).
+yAxisNorth(_,_,_,1,[]).
 yAxisNorth(Color, Board, X, Y, L):-
 	Y \= 1,
 	nextY(Y1,Y),
@@ -169,7 +256,7 @@ yAxisNorth(Color, Board, X, Y, L):-
 	(member((Col,X,Y1),Board) -> yAxisNorth(Color, Board, X, Y1, L2), L = [(Col,X,Y1)|L2]; 
 								  yAxisNorth(Color, Board, X, 1, L2), L = [(Color,X,Y1)|L2] ).
 
-diagonalUpEast(_,_,_,_,[]).
+diagonalUpEast(_,_,h,8,[]).
 diagonalUpEast(Color, Board, X, Y,L):-
 	X \= h,
 	Y \= 8,
@@ -182,7 +269,7 @@ diagonalUpEast(Color, Board, X, Y,L):-
 	(member((Col,X1,Y1),Board) -> diagonalUpEast(Color, Board, X1, Y1, L2), L = [(Col,X1,Y1)|L2]; 
 								  diagonalUpEast(Color, Board, h, 8, L2), L = [(Color,X1,Y1)|L2] ).
 
-diagonalDownEast(_,_,_,_,[]).%:- write('Hej!').
+diagonalDownEast(_,_,h,8,[]).%:- write('Hej!').
 diagonalDownEast(Color, Board, X, Y,L):-%[(Col,X1,Y1)|L]):-
 	X \= h,
 	Y \= 8,
@@ -195,7 +282,7 @@ diagonalDownEast(Color, Board, X, Y,L):-%[(Col,X1,Y1)|L]):-
 	(member((Col,X1,Y1),Board) -> diagonalDownEast(Color, Board, X1, Y1, L2), L = [(Col,X1,Y1)|L2]; 
 								  diagonalDownEast(Color, Board, h, 8, L2), L = [(Color,X1,Y1)|L2] ).
 	
-diagonalUpWest(_,_,_,_,[]).
+diagonalUpWest(_,_,a,1,[]).
 diagonalUpWest(Color, Board, X, Y,L):-
 	X \= a,
 	Y \= 1,
@@ -208,7 +295,7 @@ diagonalUpWest(Color, Board, X, Y,L):-
 	(member((Col,X1,Y1),Board) -> diagonalUpWest(Color, Board, X1, Y1, L2), L = [(Col,X1,Y1)|L2]; 
 								  diagonalUpWest(Color, Board, a, 1, L2), L = [(Color,X1,Y1)|L2] ).
 	
-diagonalDownWest(_,_,_,_,[]).
+diagonalDownWest(_,_,a,1,[]).
 % Returnerar en lista med (Color, X, Y).
 diagonalDownWest(Color, Board, X, Y,L):-
 	X \= a,
@@ -230,6 +317,9 @@ diagonalDownWest(Color, Board, X, Y,L):-
 
 % Tar listan från legalMove och flippar färgerna.
 % Ifall legalMove failar, låt andra spelaren göra sitt move.
+
+% Fixa så att legalmove kan även ge ut alla möjliga drag. Dvs kan skicka in obundna X och Y.
+
 makemove(Color, Board, X, Y, NewBoard):-
 	% Fixa legalmove signaturen så den inte ger ut en lista?
 	write('\n'),
@@ -241,8 +331,9 @@ makemove(Color, Board, X, Y, NewBoard):-
 	write('\n'),
 	write(' AFTER '),
 	write('\n'),
-	legalmove(Color, Board, X, Y),!,
-	legalmove2(Color, Board, X, Y, List),!,
+	%legalmove(Color, Board, X, Y),!,
+	% brickorna kallas Stones!
+	giveTiles(Color, Board, X, Y, List),!,
 	flipTable(Board, List, InvertBoard), % Flippar färg på brickorna.
 	append(InvertBoard, [(Color, X, Y)], NewBoard1),
 	printCoord(NewBoard1, a, 1),!.
