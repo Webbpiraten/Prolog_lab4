@@ -62,17 +62,26 @@ writeTable([(Color, X, Y)|List]):-
 	writeTable(List).
 	
 % ------------------------------- LEGALMOVE -------------------------------
+% setof((X,Y),legalmove(white,[(white,c,1),(black,c,2),(white,a,3),(black,b,3),(black, d,3), (white, e, 3),(black,c,4),(white,c,5)], X, Y), L).
+% setof((X,Y),legalmove(white,[(white,c,1),(black,c,2),(white,a,8),(black,b,8),(black, g,3), (white, h, 3),(black,e,7),(white,e,8),(white,a,2),(black,b,3),(white,f,1),(black,e,2), (white,g,5),(black,f,6),(white,b,5),(black,c,6)], X, Y), L).
 legalmove(Color, Board, X, Y):-
-	% Kollar ifall giveTiles returnerar en tom lista -> Draget är inte tillåtet.
-	%isEmpty(Board,X,Y),!,
-	%giveTiles(Color,Board,X,Y,List),
-	%(List \= [] -> true ; false).
-	member(X, [a,b,c,d,e,f,g,h]),
 	member(Y, [1,2,3,4,5,6,7,8]),
+	member(X, [a,b,c,d,e,f,g,h]),
 	not(member((_,X,Y),Board)),
-	nextX(X,X1),
-	nextY(Y,Y1),
-	checkfirst(Board, X, Y).
+	
+	(
+	xEastFst(Color, X, Y, Board);
+	xWestFst(Color, X, Y, Board);
+	
+	yDownFst(Color, X, Y, Board);
+	yUpFst(Color, X, Y, Board);
+	
+	yUpEastFst(Color, X, Y, Board);
+	yDownEastFst(Color, X, Y, Board);
+	
+	yUpWestFst(Color, X, Y, Board);
+	yDownWestFst(Color, X, Y, Board)
+	).
 	%(
 		%xAxisEast(Color, Board, X, Y, List1),!,isLast2(Color,List1,A1);
 		%xAxisWest(Color, Board, X, Y, List2),!,isLast2(Color,List2,A2).
@@ -84,66 +93,41 @@ legalmove(Color, Board, X, Y):-
 		%diagonalUpWest(Color, Board, X, Y, List7),!,isLast2(Color,List7,A7);
 		%diagonalDownWest(Color, Board, X, Y, List8),!,isLast2(Color,List8,A8).
 	%).
-
-
-xEastFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextX(X,X1), xEastSnd(Color, X1, Y, Board).
-xEastSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextX(X,X1), X1 \= i, xEastSnd(Color, X1, Y, Board)). 
-
-xWestFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextX(X1,X), xWestSnd(Color, X1, Y, Board).
-xWestSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextX(X1,X), xWestSnd(Color, X1, Y, Board)). 
-
-yDownFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextY(Y,Y1), yDownSnd(Color, X, Y1, Board).
-yDownSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextY(Y,Y1), Y1 \= 9, yDownSnd(Color, X, Y1, Board)). 
-
-yUpFst(Color, X, Y, Board):- invColor(Color, Col), member((Col,X,Y),Board),!, nextY(Y1,Y), yUpSnd(Color, X, Y1, Board).
-yUpSnd(Color, X, Y, Board):- (member((Color,X,Y),Board) -> true ; nextY(Y1,Y), yUpSnd(Color, X, Y1, Board)). 
 	
-%checkfirst(white,Board, X, Y):- 
-%	member((white, X, Y), Board),
-%	nextX(X,X1),
-%	nextY(Y,Y1),
-%	checksecond(black, Board, X1, Y1).
-	
-%checkfirst(black,Board, X, Y):- 
-%	member((black, X, Y), Board),
-%	nextX(X,X1),
-%	nextY(Y,Y1),
-%	checksecond(black, Board, X1, Y1).
+% Kan behöva kolla X och Y; X1 \= a, .... , i.
 
-%checksecond(white, Board, X, Y):-
-%	member((white, X, Y), Board),
-%	nextX(X,X1),
-%	nextY(Y,Y1),
-%	checksecond(black, Board, X1, Y1).
-	
-%checksecond(black, Board, X, Y):-
-%	member((white, X, Y), Board),
-%	nextX(X,X1),
-%	nextY(Y,Y1),
-%	checksecond(white, Board, X1, Y1).
+xEastFst(Color, X, Y, Board):- invColor(Color, Col), nextX(X,X1), member((Col,X1,Y),Board),!, xEastSnd(Col, X1, Y, Board).
+xEastSnd(Color, X, Y, Board):- invColor(Color, Col), nextX(X,X1), X1 \= i, member((Col,X1,Y),Board),!.
+xEastSnd(Color, X, Y, Board):- nextX(X,X1), X1 \= i, member((Color,X1,Y),Board),!, xEastSnd(Color, X1, Y, Board).
 
-% ------
+xWestFst(Color, X, Y, Board):- invColor(Color, Col), nextX(X1,X), member((Col,X1,Y),Board),!, xWestSnd(Col, X1, Y, Board).
+xWestSnd(Color, X, Y, Board):- invColor(Color, Col), nextX(X1,X), member((Col,X1,Y),Board),!.
+xWestSnd(Color, X, Y, Board):- nextX(X1,X), member((Color,X1,Y),Board),!, xWestSnd(Color, X1, Y, Board).
 
-%not(member((_,X,Y),Board),
-%nextX
-%nextY
-%checkfirst
+yDownFst(Color, X, Y, Board):- invColor(Color, Col), nextY(Y,Y1), member((Col,X,Y1),Board),!, yDownSnd(Col, X, Y1, Board).
+yDownSnd(Color, X, Y, Board):- invColor(Color, Col), nextY(Y,Y1), Y1 \= 9 member((Col,X,Y1),Board),!.
+yDownSnd(Color, X, Y, Board):- nextY(Y,Y1), member((Color,X,Y1),Board),!, yDownSnd(Color, X, Y1, Board).
 
-%checkfirst:-
-%member((white,X,Y)),
-%nextX
-%nextY
-%checksecond
+yUpFst(Color, X, Y, Board):- invColor(Color, Col), nextY(Y1,Y), member((Col,X,Y1),Board),!, yUpSnd(Col, X, Y1, Board).
+yUpSnd(Color, X, Y, Board):- invColor(Color, Col), nextY(Y1,Y), member((Col,X,Y1),Board),!.
+yUpSnd(Color, X, Y, Board):- nextY(Y1,Y), member((Color,X,Y1),Board),!, yUpSnd(Color, X, Y1, Board).
 
-%checksecond
-%member(black,X;Y)
+yUpEastFst(Color, X, Y, Board):- invColor(Color, Col), nextY(Y1,Y), nextX(X, X1), member((Col,X1,Y1),Board),!, yUpEastSnd(Col, X1, Y1, Board).
+yUpEastSnd(Color, X, Y, Board):- invColor(Color, Col), nextY(Y1,Y), nextX(X, X1), member((Col,X1,Y1),Board),!.
+yUpEastSnd(Color, X, Y, Board):- nextY(Y1,Y), nextX(X, X1), member((Color,X1,Y1),Board),!, yUpEastSnd(Color, X1, Y1, Board).
 
-%checksecond
-%member(white,X;Y)
-%nextX
-%nextY
-%checksecond
-	
+yDownEastFst(Color, X, Y, Board):- invColor(Color, Col), nextY(Y,Y1), nextX(X, X1), member((Col,X1,Y1),Board),!, yDownEastSnd(Col, X1, Y1, Board).
+yDownEastSnd(Color, X, Y, Board):- invColor(Color, Col), nextY(Y,Y1), nextX(X, X1), member((Col,X1,Y1),Board),!.
+yDownEastSnd(Color, X, Y, Board):- nextY(Y,Y1), nextX(X, X1), member((Color,X1,Y1),Board),!, yDownEastSnd(Color, X1, Y1, Board).
+
+yUpWestFst(Color, X, Y, Board):- invColor(Color, Col), nextY(Y1,Y), nextX(X1, X), member((Col,X1,Y1),Board),!, yUpWestSnd(Col, X1, Y1, Board).
+yUpWestSnd(Color, X, Y, Board):- invColor(Color, Col), nextY(Y1,Y), nextX(X1, X), member((Col,X1,Y1),Board),!.
+yUpWestSnd(Color, X, Y, Board):- nextY(Y1,Y), nextX(X1, X), member((Color,X1,Y1),Board),!, yUpWestSnd(Color, X1, Y1, Board).
+
+yDownWestFst(Color, X, Y, Board):- invColor(Color, Col), nextY(Y,Y1), nextX(X1, X), member((Col,X1,Y1),Board),!, yDownWestSnd(Col, X1, Y1, Board).
+yDownWestSnd(Color, X, Y, Board):- invColor(Color, Col), nextY(Y,Y1), nextX(X1, X), member((Col,X1,Y1),Board),!.
+yDownWestSnd(Color, X, Y, Board):- nextY(Y,Y1), nextX(X1, X), member((Color,X1,Y1),Board),!, yDownWestSnd(Color, X1, Y1, Board).
+
 isLast2(Color, List):-
 	(last(List,(Color,_,_)) -> true ; false).
 
@@ -317,9 +301,6 @@ diagonalDownWest(Color, Board, X, Y,L):-
 
 % Tar listan från legalMove och flippar färgerna.
 % Ifall legalMove failar, låt andra spelaren göra sitt move.
-
-% Fixa så att legalmove kan även ge ut alla möjliga drag. Dvs kan skicka in obundna X och Y.
-
 makemove(Color, Board, X, Y, NewBoard):-
 	% Fixa legalmove signaturen så den inte ger ut en lista?
 	write('\n'),
@@ -331,10 +312,9 @@ makemove(Color, Board, X, Y, NewBoard):-
 	write('\n'),
 	write(' AFTER '),
 	write('\n'),
-	%legalmove(Color, Board, X, Y),!,
-	% brickorna kallas Stones!
+	legalmove(Color, Board, X, Y),!,
 	giveTiles(Color, Board, X, Y, List),!,
-	flipTable(Board, List, InvertBoard), % Flippar färg på brickorna.
+	flipTable(Board, List, InvertBoard),
 	append(InvertBoard, [(Color, X, Y)], NewBoard1),
 	printCoord(NewBoard1, a, 1),!.
 
